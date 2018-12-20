@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+
 attrs = ['AMB', 'CH4', 'CO', 'NMHC', 'NO', 'NO2',
         'NOx', 'O3', 'PM10', 'PM2.5', 'RAINFALL', 'RH',
         'SO2', 'THC', 'WD_HR', 'WIND_DIR', 'WIND_SPEED', 'WS_HR']
@@ -58,21 +59,23 @@ class Linear_Regression(object):
     def __init__(self):
         pass
     def train(self, train_X, train_Y):
-        #TODO
         #W = ?
+        C = train_X
+        #print(C[0])
+        W = np.matmul(np.matmul(np.linalg.inv(np.matmul(C.T,C)),C.T),train_Y)
         self.W = W #save W for later prediction
     def predict(self, test_X):
-        #TODO
         #predict_Y = ...?
+        predict_Y = np.matmul(test_X,self.W)
         return predict_Y
 def MSE(predict_Y, real_Y):
-    #TODO :mean square error
-    # loss = ?
+    loss = np.mean(((predict_Y-real_Y)**2))
     return loss
 
 
+
 if __name__ == '__main__' :
-    N = 6
+    N = 1
     train_X, train_Y = read_TrainData('train.csv', N=N)
     model = Linear_Regression()
     model.train(train_X, train_Y)
