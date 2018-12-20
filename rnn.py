@@ -18,7 +18,7 @@ def getTrainData():
 
 def getTestData():
     test_X, test_Y = read_TestData('test.csv', N=1)
-    return torch.FloatTensor(test_X),torch.FloatTensor(test_X)
+    return torch.FloatTensor(test_X),torch.FloatTensor(test_Y)
 
 class RNN(nn.Module):
     def __init__(self):
@@ -31,21 +31,24 @@ class RNN(nn.Module):
         self.out = nn.Linear(19, 1)
 
     def forward(self, x):
-        r_out, h_c = self.rnn(x, None)
+        r_out, h_n = self.rnn(x, None)
         out = self.out(r_out)
         return out
 
 
-
+try:
+    model = torch.load('net.pkl')
+except:
+    model = RNN()
 
 
 loss_func = torch.nn.MSELoss()
-model = RNN()
 optimizer = torch.optim.Adam(model.parameters(),lr = 1e-5)
-
-epoch = 500
+epoch = 100
 loader = getTrainData()
 test_X, test_Y = getTestData()
+trainloss = []
+testloss = []
 for epoch_ in range(epoch):
     for step, (b_x, b_y) in enumerate(loader):       
         b_x = torch.unsqueeze(b_x,dim = 1)
@@ -57,14 +60,16 @@ for epoch_ in range(epoch):
         optimizer.step()
 
 
-        if step % 50 == 0:
+        if step % 10000 == 0:
             test_output = model(torch.unsqueeze(test_X,dim=1))   
             test_output = torch.squeeze(test_output,dim=1) 
                  # (time_step(N), 1 , input_size)
-            test_loss = np.mean(((test_output.detach().numpy()-torch.unsqueeze(test_Y[:,9],dim=1).detach().numpy())**2))
-            print('Epoch: ', epoch_, '| train loss: %.4f' % loss.data.numpy(), '| test loss: %.2f' % test_loss)
-
-
+            test_loss = np.mean(((test_output.detach().numpy()-test_Y.detach().numpy())**2))
+            trainloss.append(loss.data.numpy())
+            testloss.append(test_loss)
+            print('Epoch: ', epoch_, '| train loss: %.4f' % loss.data.numpy(), '| test loss: %.4f' % test_loss)
+            torch.save(model, 'net.pkl')
+plotting(trainloss,testloss,'./rnn.png')
 
     
     
